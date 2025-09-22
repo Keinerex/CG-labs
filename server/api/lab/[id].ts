@@ -2,9 +2,8 @@ import type { PromiseLabContent } from '~/types/api';
 
 export default defineEventHandler<PromiseLabContent>(async (event) => {
 	const labId = getRouterParam(event, 'id');
-	const data = await useStorage('assets:labs').getItem<string>(`lab${labId}.ts`);
-
-	console.log(data);
+	const stored = await useStorage('assets:labs').getItem<Uint8Array>(`lab${labId}.ts`);
+	const data = stored instanceof Uint8Array ? new TextDecoder().decode(stored) : stored;
 
 	if (!data) {
 		return {
