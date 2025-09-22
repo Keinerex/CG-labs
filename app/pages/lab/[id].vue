@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import * as z from 'zod';
-import Canvas from '~/components/Canvas.vue';
 
 const paramsSchema = z.object({
 	id: z.coerce.number().int().gte(1).lte(6),
@@ -44,11 +43,11 @@ const labId = paramsSchema.parse(route.params).id as number;
 					Расчетно-графическая работа
 				</h1>
 			</div>
-			<Canvas :lab-id="labId" />
+			<RenderCanvas :lab-id="labId" />
 			<div class="divider text-2xl">
 				Source code
 			</div>
-			<Source :lab-id="labId" />
+			<SourceCode :lab-id="labId" />
 		</div>
 	</div>
 </template>
