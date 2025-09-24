@@ -5,17 +5,12 @@ const { labId } = defineProps<{ labId: number }>();
 
 const { data: { value } } = await useFetch<LabContent>(`/api/lab/${labId}`);
 
-const content = value?.content ?? ['Код не найден'];
+const content = value?.content ?? 'Код не найден';
 </script>
 
 <template>
 	<div
-		class="mockup-code w-full"
-	>
-		<pre
-			v-for="(row, index) in content"
-			:key="row"
-			:data-prefix="index"
-		><code>{{ row }}</code></pre>
-	</div>
+		class="mockup-code w-full bg-base-200"
+		v-html="content"
+	/>
 </template>

@@ -1,4 +1,5 @@
 import type { PromiseLabContent } from '~/types/api';
+import { highlighter } from '~~/server/utils/highlighter';
 
 export default defineEventHandler<PromiseLabContent>(async (event) => {
 	const labId = getRouterParam(event, 'id');
@@ -7,11 +8,20 @@ export default defineEventHandler<PromiseLabContent>(async (event) => {
 
 	if (!data) {
 		return {
-			content: [],
+			content: null,
 		};
 	}
-
 	return {
-		content: data.split('\n').filter(Boolean).slice(1, -1).map((item: string) => item.slice(1)) ?? [],
+		content: highlighter.codeToHtml(data, {
+			lang: 'typescript',
+			theme: 'css-variables',
+			transformers: [
+				{
+					pre(hast) {
+						this.addClassToHast(hast, 'ml-3');
+					},
+				},
+			],
+		}),
 	};
 });

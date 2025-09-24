@@ -1,3 +1,30 @@
-@import "tailwindcss";
+@import "tailwindcss" {
+ @apply ml-3;
+}
+
 @plugin "@tailwindcss/typography";
-@plugin "daisyui";
+@plugin "daisyui" {
+    themes: all;
+}
+
+:root {
+    --shiki-background: var(--color-base-200);
+    --shiki-foreground: var(--color-base-content);
+    --shiki-token-constant: var(--color-primary);
+    --shiki-token-string: var(--color-success);
+    --shiki-token-comment: var(--color-base-content/40);
+    --shiki-token-keyword: var(--color-secondary);
+    --shiki-token-parameter: var(--color-accent);
+    --shiki-token-function: var(--color-primary);
+    --shiki-token-string-expression: var(--color-success);
+    --shiki-token-punctuation: var(--color-base-content/70);
+    --shiki-token-link: var(--color-info);
+}
+
+.mockup-code {
+    & pre {
+        &:before {
+            display: none;
+        }
+    }
+}
