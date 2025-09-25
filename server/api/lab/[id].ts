@@ -18,7 +18,7 @@ export default defineEventHandler<PromiseLabContent>(async (event) => {
 			transformers: [
 				{
 					pre(hast) {
-						this.addClassToHast(hast, 'ml-3');
+						this.addClassToHast(hast, 'ml-5');
 					},
 				},
 			],

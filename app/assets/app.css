@@ -4,3 +4,5 @@
 @plugin "daisyui" {
     themes: all;
 }
+
+@source inline("ml-5");
