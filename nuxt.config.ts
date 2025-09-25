@@ -9,7 +9,7 @@ export default defineNuxtConfig({
 			enabled: true,
 		},
 	},
-	css: ['~/assets/app.css'],
+	css: ['~/assets/app.css', '~/assets/shiki.css'],
 	compatibilityDate: '2025-07-15',
 	nitro: {
 		serverAssets: [
