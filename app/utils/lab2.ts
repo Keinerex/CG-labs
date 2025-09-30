@@ -31,6 +31,8 @@ const masks: Record<Exclude<MaskType, MaskType.ORIGINAL>, number[][]> = {
 	],
 };
 
+const clamp = (min: number, value: number, max: number) => Math.max(min, Math.min(max, Math.round(value)));
+
 export default function render(
 	ctx: CanvasRenderingContext2D,
 	maskType: MaskType = MaskType.ORIGINAL,
@@ -88,9 +90,9 @@ export default function render(
 					}
 				}
 				const di = (y * width + x) * 4;
-				dst[di] = Math.max(0, Math.min(255, Math.round(r)));
-				dst[di + 1] = Math.max(0, Math.min(255, Math.round(g)));
-				dst[di + 2] = Math.max(0, Math.min(255, Math.round(b)));
+				dst[di] = clamp(0, r, 255);
+				dst[di + 1] = clamp(0, g, 255);
+				dst[di + 2] = clamp(0, b, 255);
 			}
 		}
 		return new ImageData(dst, width, height);
