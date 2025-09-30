@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { MaskType } from '~/utils/lab2';
+
 const { labId } = defineProps<{ labId: number }>();
+const maskMode = ref<MaskType>(MaskType.ORIGINAL);
 const x0 = ref(0);
 const y0 = ref(0);
 const x1 = ref(0);
@@ -20,6 +23,9 @@ function renderCanvas() {
 	switch (labId) {
 		case 1:
 			lab1(x0.value, y0.value, x1.value, y1.value, ctx);
+			break;
+		case 2:
+			lab2(ctx, maskMode.value);
 			break;
 	}
 }
@@ -86,6 +92,51 @@ function renderCanvas() {
 						>
 					</label>
 				</div>
+			</div>
+			<div
+				v-if="labId === 2"
+				class="tabs tabs-border"
+			>
+				<input
+					:id="MaskType.ORIGINAL"
+					v-model="maskMode"
+					:value="MaskType.ORIGINAL"
+					type="radio"
+					class="tab"
+					aria-label="Исходное"
+				>
+				<input
+					:id="MaskType.UNIFORM_2X2"
+					v-model="maskMode"
+					:value="MaskType.UNIFORM_2X2"
+					type="radio"
+					class="tab"
+					aria-label="Усреднение 2x2"
+				>
+				<input
+					:id="MaskType.UNIFORM_4X4"
+					v-model="maskMode"
+					:value="MaskType.UNIFORM_4X4"
+					type="radio"
+					class="tab"
+					aria-label="Усреднение 4x4"
+				>
+				<input
+					:id="MaskType.WEIGHTED_3X3"
+					v-model="maskMode"
+					:value="MaskType.WEIGHTED_3X3"
+					type="radio"
+					class="tab"
+					aria-label="Взвешенная 3x3"
+				>
+				<input
+					:id="MaskType.WEIGHTED_5X5"
+					v-model="maskMode"
+					:value="MaskType.WEIGHTED_5X5"
+					type="radio"
+					class="tab"
+					aria-label="Взвешенная 5x5"
+				>
 			</div>
 			<button
 				class="btn btn-lg btn-soft btn-accent"

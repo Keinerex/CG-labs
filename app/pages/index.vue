@@ -1,8 +1,8 @@
 <template>
-	<div>
-		<section class="card bg-base-200 shadow-xl p-6 mb-6">
-			<div class="card-body">
-				<h1 class="text-4xl font-extrabold">
+	<div class="flex flex-col gap-4">
+		<section class="card bg-base-200 shadow-xl">
+			<div class="prose-sm md:prose card-body sm:p-4">
+				<h1 class="font-bold">
 					Компьютерная графика
 				</h1>
 				<p class="mt-2 text-lg">
