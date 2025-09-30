@@ -6,37 +6,36 @@ export enum MaskType {
 	WEIGHTED_5X5 = 'w5',
 }
 
+const masks: Record<Exclude<MaskType, MaskType.ORIGINAL>, number[][]> = {
+	[MaskType.UNIFORM_2X2]: [
+		[1 / 4, 1 / 4],
+		[1 / 4, 1 / 4],
+	],
+	[MaskType.UNIFORM_4X4]: [
+		[1 / 16, 1 / 16, 1 / 16, 1 / 16],
+		[1 / 16, 1 / 16, 1 / 16, 1 / 16],
+		[1 / 16, 1 / 16, 1 / 16, 1 / 16],
+		[1 / 16, 1 / 16, 1 / 16, 1 / 16],
+	],
+	[MaskType.WEIGHTED_3X3]: [
+		[1 / 16, 2 / 16, 1 / 16],
+		[2 / 16, 4 / 16, 2 / 16],
+		[1 / 16, 2 / 16, 1 / 16],
+	],
+	[MaskType.WEIGHTED_5X5]: [
+		[1 / 25, 2 / 25, 3 / 25, 2 / 25, 1 / 25],
+		[2 / 25, 4 / 25, 6 / 25, 4 / 25, 2 / 25],
+		[3 / 25, 6 / 25, 9 / 25, 6 / 25, 3 / 25],
+		[2 / 25, 4 / 25, 6 / 25, 4 / 25, 2 / 25],
+		[1 / 25, 2 / 25, 3 / 25, 2 / 25, 1 / 25],
+	],
+};
+
 export default function render(
 	ctx: CanvasRenderingContext2D,
 	maskType: MaskType = MaskType.ORIGINAL,
 ) {
 	const { width, height } = ctx.canvas;
-
-	// Предопределённые маски
-	const masks: Record<Exclude<MaskType, MaskType.ORIGINAL>, number[][]> = {
-		[MaskType.UNIFORM_2X2]: [
-			[1 / 4, 1 / 4],
-			[1 / 4, 1 / 4],
-		],
-		[MaskType.UNIFORM_4X4]: [
-			[1 / 16, 1 / 16, 1 / 16, 1 / 16],
-			[1 / 16, 1 / 16, 1 / 16, 1 / 16],
-			[1 / 16, 1 / 16, 1 / 16, 1 / 16],
-			[1 / 16, 1 / 16, 1 / 16, 1 / 16],
-		],
-		[MaskType.WEIGHTED_3X3]: [
-			[1 / 16, 2 / 16, 1 / 16],
-			[2 / 16, 4 / 16, 2 / 16],
-			[1 / 16, 2 / 16, 1 / 16],
-		],
-		[MaskType.WEIGHTED_5X5]: [
-			[1 / 25, 2 / 25, 3 / 25, 2 / 25, 1 / 25],
-			[2 / 25, 4 / 25, 6 / 25, 4 / 25, 2 / 25],
-			[3 / 25, 6 / 25, 9 / 25, 6 / 25, 3 / 25],
-			[2 / 25, 4 / 25, 6 / 25, 4 / 25, 2 / 25],
-			[1 / 25, 2 / 25, 3 / 25, 2 / 25, 1 / 25],
-		],
-	};
 
 	function generateTestImage(): ImageData {
 		const img = ctx.createImageData(width, height);
@@ -45,18 +44,15 @@ export default function render(
 			for (let x = 0; x < width; x++) {
 				const i = (y * width + x) * 4;
 				if (x < width / 3) {
-					// Gradient
 					const g = Math.floor((x / (width / 3)) * 255);
 					d[i] = d[i + 1] = d[i + 2] = g;
 				}
 				else if (x < 2 * width / 3) {
-					// Checkerboard
 					const size = 20;
 					const c = ((Math.floor(x / size) + Math.floor(y / size)) % 2) ? 0 : 255;
 					d[i] = d[i + 1] = d[i + 2] = c;
 				}
 				else {
-					// Deterministic stripe pattern: vertical stripes width=5 pixels
 					const stripeWidth = 5;
 					const c = (Math.floor(x / stripeWidth) % 2) ? 64 : 192;
 					d[i] = d[i + 1] = d[i + 2] = c;
