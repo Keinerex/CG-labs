@@ -103,7 +103,7 @@ function renderCanvas() {
 					:value="MaskType.ORIGINAL"
 					type="radio"
 					class="tab"
-					aria-label="Исходное"
+					aria-label="Оригинал"
 				>
 				<input
 					:id="MaskType.UNIFORM_2X2"
