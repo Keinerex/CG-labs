@@ -30,6 +30,8 @@ definePageMeta({
 const route = useRoute();
 
 const labId = paramsSchema.parse(route.params).id as number;
+
+const reportLink = `/Report-${labId}.pdf`;
 </script>
 
 <template>
@@ -45,7 +47,12 @@ const labId = paramsSchema.parse(route.params).id as number;
 			</div>
 			<RenderCanvas :lab-id="labId" />
 			<div class="divider text-2xl">
-				Source code
+				<a
+					class="link"
+					target="_blank"
+					referrerpolicy="no-referrer"
+					:href="reportLink"
+				>Report</a>
 			</div>
 			<SourceCode :lab-id="labId" />
 		</div>
