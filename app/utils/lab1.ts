@@ -16,7 +16,7 @@ const renderCDA = (
 	let x = x0;
 	let y = y0;
 
-	ctx.fillStyle = 'red';
+	ctx.fillStyle = 'rgba(255,0,0,0.5)';
 
 	for (let i = 0; i <= steps; i++) {
 		ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
@@ -40,7 +40,7 @@ const renderBresenham = (
 	const sy = y0 < y1 ? 1 : -1;
 	let err = dx - dy;
 
-	ctx.fillStyle = 'blue';
+	ctx.fillStyle = 'rgba(0,0,255,0.5)';
 
 	while (true) {
 		ctx.fillRect(x0, y0, 1, 1);
