@@ -3,10 +3,13 @@ import lab2, { MaskType } from '~/utils/lab2';
 import lab1 from '~/utils/lab1';
 import lab3, { FillAlgorithm } from '~/utils/lab3';
 import { floodFill, drawPlayground, FloodFillAlgorithm } from '~/utils/lab4';
+import { renderClipping, ClippingAlgorithm } from '~/utils/lab5';
 
 const { labId } = defineProps<{ labId: number }>();
 const maskMode = ref<MaskType>(MaskType.ORIGINAL);
 const floodFillMode = ref<FloodFillAlgorithm>(FloodFillAlgorithm.SIMPLE_4);
+const clippingAlgorithm = ref<ClippingAlgorithm>(ClippingAlgorithm.COHEN_SUTHERLAND);
+const clippingStats = ref<{ totalSegments: number; fullyVisible: number; fullyInvisible: number; partial: number } | null>(null);
 const x0 = ref(0);
 const y0 = ref(0);
 const x1 = ref(0);
@@ -26,6 +29,10 @@ function renderCanvas() {
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	if (labId !== 5) {
+		clippingStats.value = null;
+	}
+
 	switch (labId) {
 		case 1:
 			lab1(x0.value, y0.value, x1.value, y1.value, ctx);
@@ -39,6 +46,11 @@ function renderCanvas() {
 		case 4:
 			drawPlayground(ctx);
 			break;
+		case 5: {
+			const stats = renderClipping(ctx, clippingAlgorithm.value);
+			clippingStats.value = stats;
+			break;
+		}
 	}
 }
 
@@ -50,6 +62,8 @@ function handleCanvasClick(e: MouseEvent) {
 	const ctx = canvas.getContext('2d');
 
 	if (!ctx) return;
+
+	ctx.imageSmoothingEnabled = false;
 
 	if (labId !== 4) return;
 
@@ -71,6 +85,7 @@ function handleCanvasClick(e: MouseEvent) {
 		<div class="card bg-base-200 p-16 flex flex-col items-center gap-8">
 			<canvas
 				ref="canvasRef"
+				style="image-rendering: pixelated;"
 				width="600"
 				height="600"
 				class="border rounded-lg"
@@ -231,6 +246,50 @@ function handleCanvasClick(e: MouseEvent) {
 					class="tab"
 					aria-label="Построчный 8x"
 				>
+			</div>
+			<div
+				v-if="labId === 5"
+				class="w-full flex flex-col gap-4"
+			>
+				<div class="tabs tabs-border">
+					<input
+						:id="ClippingAlgorithm.COHEN_SUTHERLAND"
+						v-model="clippingAlgorithm"
+						:value="ClippingAlgorithm.COHEN_SUTHERLAND"
+						type="radio"
+						class="tab"
+						aria-label="Коэн–Сазерленд"
+					>
+					<input
+						:id="ClippingAlgorithm.LIANG_BARSKY"
+						v-model="clippingAlgorithm"
+						:value="ClippingAlgorithm.LIANG_BARSKY"
+						type="radio"
+						class="tab"
+						aria-label="Лян–Барски (Кирус–Бек)"
+					>
+				</div>
+				<div
+					v-if="labId === 5"
+					class="stats bg-base-100 shadow w-full"
+				>
+					<div class="stat">
+						<div class="stat-title">Всего отрезков</div>
+						<div class="stat-value text-lg">{{ clippingStats?.totalSegments ?? "N" }}</div>
+					</div>
+					<div class="stat">
+						<div class="stat-title">Полностью видимые</div>
+						<div class="stat-value text-lg text-green-600">{{ clippingStats?.fullyVisible ?? "N" }}</div>
+					</div>
+					<div class="stat">
+						<div class="stat-title">Полностью невидимые</div>
+						<div class="stat-value text-lg text-red-600">{{ clippingStats?.fullyInvisible ?? "N" }}</div>
+					</div>
+					<div class="stat">
+						<div class="stat-title">Частично видимые</div>
+						<div class="stat-value text-lg">{{ clippingStats?.partial ?? "N" }}</div>
+					</div>
+				</div>
 			</div>
 			<button
 				class="btn btn-lg btn-soft btn-accent"
