@@ -143,7 +143,7 @@ function cohenSutherlandClip(line: LineSegment, window: ClipWindow): ClippedLine
 	};
 }
 
-function liangBarskyClip(line: LineSegment, window: ClipWindow): ClippedLineResult {
+function cyrusBeckClip(line: LineSegment, window: ClipWindow): ClippedLineResult {
 	const x0 = line.ax;
 	const y0 = line.ay;
 	const x1 = line.bx;
@@ -248,7 +248,7 @@ export function clipSegments(
 
 	let results: ClippedLineResult[];
 	if (algorithm === ClippingAlgorithm.LIANG_BARSKY) {
-		results = segments.map(line => liangBarskyClip(line, windowRect));
+		results = segments.map(line => cyrusBeckClip(line, windowRect));
 	}
 	else {
 		results = segments.map(line => cohenSutherlandClip(line, windowRect));

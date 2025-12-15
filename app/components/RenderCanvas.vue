@@ -2,14 +2,9 @@
 import lab2, { MaskType } from '~/utils/lab2';
 import lab1 from '~/utils/lab1';
 import lab3, { FillAlgorithm } from '~/utils/lab3';
-import { floodFill, drawPlayground, FloodFillAlgorithm } from '~/utils/lab4';
-import {
-	ClippingAlgorithm,
-	ClipWindow,
-	LineSegment,
-	clipSegments,
-	drawClippingWindow,
-} from '~/utils/lab5';
+import { drawPlayground, floodFill, FloodFillAlgorithm } from '~/utils/lab4';
+import { type ClipWindow, drawLine, drawRect, type LineSegment } from '~/utils/lab5';
+import { ClippingAlgorithm, clipSegments, drawClippingWindow } from '~/utils/lab5';
 
 const { labId } = defineProps<{ labId: number }>();
 
@@ -77,9 +72,7 @@ function renderCanvas() {
 			drawPlayground(ctx);
 			break;
 		case 5: {
-			// для lab5 по кнопке «Нарисовать» рисуем рамку и подготавливаем состояние
-			const win = drawClippingWindow(ctx);
-			clippingWindow.value = win;
+			clippingWindow.value = drawClippingWindow(ctx);
 			clippingSegments.value = [];
 			clippingStats.value = null;
 			isWaitingSecondPoint.value = false;
@@ -118,12 +111,10 @@ function handleCanvasClick(e: MouseEvent) {
 		const y = e.clientY - rect.top;
 
 		if (!isWaitingSecondPoint.value) {
-			// первая точка отрезка
 			tempFirstPoint.value = { x, y };
 			isWaitingSecondPoint.value = true;
 		}
 		else if (tempFirstPoint.value) {
-			// вторая точка — добавляем отрезок
 			const seg: LineSegment = {
 				ax: tempFirstPoint.value.x,
 				ay: tempFirstPoint.value.y,
@@ -132,7 +123,6 @@ function handleCanvasClick(e: MouseEvent) {
 			};
 			clippingSegments.value.push(seg);
 
-			// перерисовываем: рамка + все введённые отрезки (серым)
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.fillStyle = 'white';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -340,7 +330,7 @@ function handleCanvasClick(e: MouseEvent) {
 						:value="ClippingAlgorithm.LIANG_BARSKY"
 						type="radio"
 						class="tab"
-						aria-label="Лян–Барски (Кирус–Бек)"
+						aria-label="Кирус–Бек"
 					>
 				</div>
 				<div
@@ -382,20 +372,20 @@ function handleCanvasClick(e: MouseEvent) {
 				</div>
 			</div>
 			<div class="flex flex-row gap-2 ">
-        <button
-            class="btn btn-lg btn-soft btn-accent"
-            @click="renderCanvas"
-        >
-          Нарисовать
-        </button>
-        <button
-            v-if="labId === 5"
-            class="btn btn-lg btn-soft btn-accent"
-            @click="applyClipping"
-        >
-          Обрезать
-        </button>
-      </div>
+				<button
+					class="btn btn-lg btn-soft btn-accent"
+					@click="renderCanvas"
+				>
+					Нарисовать
+				</button>
+				<button
+					v-if="labId === 5"
+					class="btn btn-lg btn-soft btn-accent"
+					@click="applyClipping"
+				>
+					Обрезать
+				</button>
+			</div>
 		</div>
 	</div>
 </template>
