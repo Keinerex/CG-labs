@@ -1,28 +1,29 @@
-type LineSegment = {
+export type LineSegment = {
 	ax: number;
 	ay: number;
 	bx: number;
 	by: number;
 };
 
-type ClipWindow = {
+export type ClipWindow = {
 	xmin: number;
 	ymin: number;
 	xmax: number;
 	ymax: number;
 };
 
-type ClippedLineResult = {
+export type ClippedLineResult = {
 	visibleParts: LineSegment[];
 	invisibleParts: LineSegment[];
 	original: LineSegment;
 };
 
-type ClippingStats = {
+export type ClippingStats = {
 	totalSegments: number;
 	fullyVisible: number;
 	fullyInvisible: number;
 	partial: number;
+	timeSeconds: number;
 };
 
 export enum ClippingAlgorithm {
@@ -30,14 +31,14 @@ export enum ClippingAlgorithm {
 	LIANG_BARSKY = 'liang_barsky',
 }
 
-function drawLine(ctx: CanvasRenderingContext2D, line: LineSegment): void {
+export function drawLine(ctx: CanvasRenderingContext2D, line: LineSegment): void {
 	ctx.beginPath();
 	ctx.moveTo(line.ax, line.ay);
 	ctx.lineTo(line.bx, line.by);
 	ctx.stroke();
 }
 
-function drawRect(ctx: CanvasRenderingContext2D, rect: ClipWindow): void {
+export function drawRect(ctx: CanvasRenderingContext2D, rect: ClipWindow): void {
 	const { xmin, ymin, xmax, ymax } = rect;
 	ctx.beginPath();
 	ctx.moveTo(xmin, ymin);
@@ -208,25 +209,7 @@ function liangBarskyClip(line: LineSegment, window: ClipWindow): ClippedLineResu
 	};
 }
 
-function exampleLines(window: ClipWindow): LineSegment[] {
-	const cy = (window.ymin + window.ymax) / 2;
-	const w = window.xmax - window.xmin;
-	const h = window.ymax - window.ymin;
-
-	return [
-		// Частично видимый (пересекающий окно)
-		{ ax: window.xmin - w * 0.5, ay: cy, bx: window.xmax + w * 0.5, by: cy },
-		// Полностью видимый
-		{ ax: window.xmin + w * 0.1, ay: window.ymin + h * 0.1, bx: window.xmax - w * 0.1, by: window.ymax - h * 0.1 },
-		// Полностью невидимый
-		{ ax: window.xmin - w * 0.3, ay: window.ymin - h * 0.3, bx: window.xmin - w * 0.1, by: window.ymin - h * 0.1 },
-	];
-}
-
-export function renderClipping(
-	ctx: CanvasRenderingContext2D,
-	algorithm: ClippingAlgorithm,
-): ClippingStats {
+export function drawClippingWindow(ctx: CanvasRenderingContext2D): ClipWindow {
 	const canvas = ctx.canvas;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -241,19 +224,36 @@ export function renderClipping(
 		ymax: canvas.height - margin,
 	};
 
-	const lines = exampleLines(windowRect);
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = 'black';
+	drawRect(ctx, windowRect);
 
-	let results: ClippedLineResult[];
-	if (algorithm === ClippingAlgorithm.LIANG_BARSKY) {
-		results = lines.map(line => liangBarskyClip(line, windowRect));
-	}
-	else {
-		results = lines.map(line => cohenSutherlandClip(line, windowRect));
-	}
+	return windowRect;
+}
+
+export function clipSegments(
+	ctx: CanvasRenderingContext2D,
+	windowRect: ClipWindow,
+	segments: LineSegment[],
+	algorithm: ClippingAlgorithm,
+): ClippingStats {
+	const start = performance.now();
+	// Перерисовываем фон и окно
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.fillStyle = 'white';
+	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
 	ctx.lineWidth = 2;
 	ctx.strokeStyle = 'black';
 	drawRect(ctx, windowRect);
+
+	let results: ClippedLineResult[];
+	if (algorithm === ClippingAlgorithm.LIANG_BARSKY) {
+		results = segments.map(line => liangBarskyClip(line, windowRect));
+	}
+	else {
+		results = segments.map(line => cohenSutherlandClip(line, windowRect));
+	}
 
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = '#999999';
@@ -293,12 +293,30 @@ export function renderClipping(
 		}
 	}
 
+	const timeSeconds = (performance.now() - start) / 1000;
+
 	return {
 		totalSegments: results.length,
 		fullyVisible,
 		fullyInvisible,
 		partial,
+		timeSeconds,
 	};
+}
+
+function exampleLines(window: ClipWindow): LineSegment[] {
+	const cy = (window.ymin + window.ymax) / 2;
+	const w = window.xmax - window.xmin;
+	const h = window.ymax - window.ymin;
+
+	return [
+		// Частично видимый (пересекающий окно)
+		{ ax: window.xmin - w * 0.5, ay: cy, bx: window.xmax + w * 0.5, by: cy },
+		// Полностью видимый
+		{ ax: window.xmin + w * 0.1, ay: window.ymin + h * 0.1, bx: window.xmax - w * 0.1, by: window.ymax - h * 0.1 },
+		// Полностью невидимый
+		{ ax: window.xmin - w * 0.3, ay: window.ymin - h * 0.3, bx: window.xmin - w * 0.1, by: window.ymin - h * 0.1 },
+	];
 }
 
 // Оставляем дефолтный экспорт для совместимости: по умолчанию используем Коэн–Сазерленда

@@ -3,13 +3,25 @@ import lab2, { MaskType } from '~/utils/lab2';
 import lab1 from '~/utils/lab1';
 import lab3, { FillAlgorithm } from '~/utils/lab3';
 import { floodFill, drawPlayground, FloodFillAlgorithm } from '~/utils/lab4';
-import { renderClipping, ClippingAlgorithm } from '~/utils/lab5';
+import {
+	ClippingAlgorithm,
+	ClipWindow,
+	LineSegment,
+	clipSegments,
+	drawClippingWindow,
+} from '~/utils/lab5';
 
 const { labId } = defineProps<{ labId: number }>();
+
 const maskMode = ref<MaskType>(MaskType.ORIGINAL);
 const floodFillMode = ref<FloodFillAlgorithm>(FloodFillAlgorithm.SIMPLE_4);
 const clippingAlgorithm = ref<ClippingAlgorithm>(ClippingAlgorithm.COHEN_SUTHERLAND);
 const clippingStats = ref<{ totalSegments: number; fullyVisible: number; fullyInvisible: number; partial: number } | null>(null);
+const clippingWindow = ref<ClipWindow | null>(null);
+const clippingSegments = ref<LineSegment[]>([]);
+const isWaitingSecondPoint = ref(false);
+const tempFirstPoint = ref<{ x: number; y: number } | null>(null);
+
 const x0 = ref(0);
 const y0 = ref(0);
 const x1 = ref(0);
@@ -19,18 +31,36 @@ const fillAlgorithm = ref<FillAlgorithm>(FillAlgorithm.SCANLINE);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
+function applyClipping() {
+	const canvas = canvasRef.value;
+	if (!canvas || !clippingWindow.value) return;
+
+	const ctx = canvas.getContext('2d');
+	if (!ctx) return;
+
+	clippingStats.value = clipSegments(
+		ctx,
+		clippingWindow.value,
+		clippingSegments.value,
+		clippingAlgorithm.value,
+	);
+}
+
 function renderCanvas() {
 	const canvas = canvasRef.value;
 	if (!canvas) return;
 
 	const ctx = canvas.getContext('2d');
-
-	if (!ctx || !canvas) return;
+	if (!ctx) return;
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	if (labId !== 5) {
 		clippingStats.value = null;
+		clippingWindow.value = null;
+		clippingSegments.value = [];
+		isWaitingSecondPoint.value = false;
+		tempFirstPoint.value = null;
 	}
 
 	switch (labId) {
@@ -47,8 +77,13 @@ function renderCanvas() {
 			drawPlayground(ctx);
 			break;
 		case 5: {
-			const stats = renderClipping(ctx, clippingAlgorithm.value);
-			clippingStats.value = stats;
+			// для lab5 по кнопке «Нарисовать» рисуем рамку и подготавливаем состояние
+			const win = drawClippingWindow(ctx);
+			clippingWindow.value = win;
+			clippingSegments.value = [];
+			clippingStats.value = null;
+			isWaitingSecondPoint.value = false;
+			tempFirstPoint.value = null;
 			break;
 		}
 	}
@@ -56,27 +91,66 @@ function renderCanvas() {
 
 function handleCanvasClick(e: MouseEvent) {
 	const canvas = canvasRef.value;
-
 	if (!canvas) return;
 
 	const ctx = canvas.getContext('2d');
-
 	if (!ctx) return;
 
 	ctx.imageSmoothingEnabled = false;
 
-	if (labId !== 4) return;
+	if (labId === 4) {
+		const rect = canvas.getBoundingClientRect();
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
 
-	const rect = canvas.getBoundingClientRect();
-	const x = e.clientX - rect.left;
-	const y = e.clientY - rect.top;
+		floodFill(
+			ctx,
+			x,
+			y,
+			floodFillMode.value,
+		);
+		return;
+	}
 
-	floodFill(
-		ctx,
-		x,
-		y,
-		floodFillMode.value,
-	);
+	if (labId === 5 && clippingWindow.value) {
+		const rect = canvas.getBoundingClientRect();
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+
+		if (!isWaitingSecondPoint.value) {
+			// первая точка отрезка
+			tempFirstPoint.value = { x, y };
+			isWaitingSecondPoint.value = true;
+		}
+		else if (tempFirstPoint.value) {
+			// вторая точка — добавляем отрезок
+			const seg: LineSegment = {
+				ax: tempFirstPoint.value.x,
+				ay: tempFirstPoint.value.y,
+				bx: x,
+				by: y,
+			};
+			clippingSegments.value.push(seg);
+
+			// перерисовываем: рамка + все введённые отрезки (серым)
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = 'white';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = 'black';
+			if (clippingWindow.value) {
+				drawRect(ctx, clippingWindow.value);
+			}
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = '#666666';
+			for (const l of clippingSegments.value) {
+				drawLine(ctx, l);
+			}
+
+			isWaitingSecondPoint.value = false;
+			tempFirstPoint.value = null;
+		}
+	}
 }
 </script>
 
@@ -251,7 +325,7 @@ function handleCanvasClick(e: MouseEvent) {
 				v-if="labId === 5"
 				class="w-full flex flex-col gap-4"
 			>
-				<div class="tabs tabs-border">
+				<div class="tabs tabs-border m-auto">
 					<input
 						:id="ClippingAlgorithm.COHEN_SUTHERLAND"
 						v-model="clippingAlgorithm"
@@ -274,29 +348,54 @@ function handleCanvasClick(e: MouseEvent) {
 					class="stats bg-base-100 shadow w-full"
 				>
 					<div class="stat">
-						<div class="stat-title">Всего отрезков</div>
-						<div class="stat-value text-lg">{{ clippingStats?.totalSegments ?? "N" }}</div>
+						<div class="stat-title">
+							Всего отрезков
+						</div>
+						<div class="stat-value text-lg">
+							{{ clippingStats?.totalSegments }}
+						</div>
 					</div>
 					<div class="stat">
-						<div class="stat-title">Полностью видимые</div>
-						<div class="stat-value text-lg text-green-600">{{ clippingStats?.fullyVisible ?? "N" }}</div>
+						<div class="stat-title">
+							Полностью видимые
+						</div>
+						<div class="stat-value text-lg text-green-600">
+							{{ clippingStats?.fullyVisible }}
+						</div>
 					</div>
 					<div class="stat">
-						<div class="stat-title">Полностью невидимые</div>
-						<div class="stat-value text-lg text-red-600">{{ clippingStats?.fullyInvisible ?? "N" }}</div>
+						<div class="stat-title">
+							Полностью невидимые
+						</div>
+						<div class="stat-value text-lg text-red-600">
+							{{ clippingStats?.fullyInvisible }}
+						</div>
 					</div>
 					<div class="stat">
-						<div class="stat-title">Частично видимые</div>
-						<div class="stat-value text-lg">{{ clippingStats?.partial ?? "N" }}</div>
+						<div class="stat-title">
+							Частично видимые
+						</div>
+						<div class="stat-value text-lg">
+							{{ clippingStats?.partial }}
+						</div>
 					</div>
 				</div>
 			</div>
-			<button
-				class="btn btn-lg btn-soft btn-accent"
-				@click="renderCanvas"
-			>
-				Нарисовать
-			</button>
+			<div class="flex flex-row gap-2 ">
+        <button
+            class="btn btn-lg btn-soft btn-accent"
+            @click="renderCanvas"
+        >
+          Нарисовать
+        </button>
+        <button
+            v-if="labId === 5"
+            class="btn btn-lg btn-soft btn-accent"
+            @click="applyClipping"
+        >
+          Обрезать
+        </button>
+      </div>
 		</div>
 	</div>
 </template>
