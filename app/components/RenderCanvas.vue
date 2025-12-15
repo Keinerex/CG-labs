@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { MaskType } from '~/utils/lab2';
+import lab2, { MaskType } from '~/utils/lab2';
+import lab1 from '~/utils/lab1';
+import lab3, { FillAlgorithm } from '~/utils/lab3';
 
 const { labId } = defineProps<{ labId: number }>();
 const maskMode = ref<MaskType>(MaskType.ORIGINAL);
@@ -7,6 +9,8 @@ const x0 = ref(0);
 const y0 = ref(0);
 const x1 = ref(0);
 const y1 = ref(0);
+
+const fillAlgorithm = ref<FillAlgorithm>(FillAlgorithm.SCANLINE);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
@@ -26,6 +30,9 @@ function renderCanvas() {
 			break;
 		case 2:
 			lab2(ctx, maskMode.value);
+			break;
+		case 3:
+			lab3(ctx, fillAlgorithm.value);
 			break;
 	}
 }
@@ -136,6 +143,27 @@ function renderCanvas() {
 					type="radio"
 					class="tab"
 					aria-label="Взвешенная 5x5"
+				>
+			</div>
+			<div
+				v-if="labId === 3"
+				class="tabs tabs-border"
+			>
+				<input
+					id="scanline"
+					v-model="fillAlgorithm"
+					value="scanline"
+					type="radio"
+					class="tab"
+					aria-label="Scanline"
+				>
+				<input
+					id="edge"
+					v-model="fillAlgorithm"
+					value="edge"
+					type="radio"
+					class="tab"
+					aria-label="Edge table"
 				>
 			</div>
 			<button
