@@ -238,7 +238,6 @@ export function clipSegments(
 	algorithm: ClippingAlgorithm,
 ): ClippingStats {
 	const start = performance.now();
-	// Перерисовываем фон и окно
 	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	ctx.fillStyle = 'white';
 	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -302,24 +301,4 @@ export function clipSegments(
 		partial,
 		timeSeconds,
 	};
-}
-
-function exampleLines(window: ClipWindow): LineSegment[] {
-	const cy = (window.ymin + window.ymax) / 2;
-	const w = window.xmax - window.xmin;
-	const h = window.ymax - window.ymin;
-
-	return [
-		// Частично видимый (пересекающий окно)
-		{ ax: window.xmin - w * 0.5, ay: cy, bx: window.xmax + w * 0.5, by: cy },
-		// Полностью видимый
-		{ ax: window.xmin + w * 0.1, ay: window.ymin + h * 0.1, bx: window.xmax - w * 0.1, by: window.ymax - h * 0.1 },
-		// Полностью невидимый
-		{ ax: window.xmin - w * 0.3, ay: window.ymin - h * 0.3, bx: window.xmin - w * 0.1, by: window.ymin - h * 0.1 },
-	];
-}
-
-// Оставляем дефолтный экспорт для совместимости: по умолчанию используем Коэн–Сазерленда
-export default function render(ctx: CanvasRenderingContext2D): void {
-	renderClipping(ctx, ClippingAlgorithm.COHEN_SUTHERLAND);
 }
