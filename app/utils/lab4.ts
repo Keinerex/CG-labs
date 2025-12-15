@@ -348,6 +348,7 @@ export async function floodFill(
 	const targetColor: [number, number, number, number] = [r, g, b, a];
 
 	const colorMap: Record<FloodFillAlgorithm, [number, number, number, number]> = {
+		[FloodFillAlgorithm.SIMPLE_4]: [255, 0, 0, 255], // Синий
 		[FloodFillAlgorithm.SIMPLE_8]: [255, 0, 0, 255], // Красный
 		[FloodFillAlgorithm.SCANLINE_4]: [0, 255, 0, 255], // Зелёный
 		[FloodFillAlgorithm.SCANLINE_8]: [255, 255, 0, 255], // Жёлтый
