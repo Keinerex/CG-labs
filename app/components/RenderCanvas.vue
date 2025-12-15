@@ -2,9 +2,11 @@
 import lab2, { MaskType } from '~/utils/lab2';
 import lab1 from '~/utils/lab1';
 import lab3, { FillAlgorithm } from '~/utils/lab3';
+import { floodFill, drawPlayground, FloodFillAlgorithm } from '~/utils/lab4';
 
 const { labId } = defineProps<{ labId: number }>();
 const maskMode = ref<MaskType>(MaskType.ORIGINAL);
+const floodFillMode = ref<FloodFillAlgorithm>(FloodFillAlgorithm.SIMPLE_4);
 const x0 = ref(0);
 const y0 = ref(0);
 const x1 = ref(0);
@@ -34,7 +36,33 @@ function renderCanvas() {
 		case 3:
 			lab3(ctx, fillAlgorithm.value);
 			break;
+		case 4:
+			drawPlayground(ctx);
+			break;
 	}
+}
+
+function handleCanvasClick(e: MouseEvent) {
+	const canvas = canvasRef.value;
+
+	if (!canvas) return;
+
+	const ctx = canvas.getContext('2d');
+
+	if (!ctx) return;
+
+	if (labId !== 4) return;
+
+	const rect = canvas.getBoundingClientRect();
+	const x = e.clientX - rect.left;
+	const y = e.clientY - rect.top;
+
+	floodFill(
+		ctx,
+		x,
+		y,
+		floodFillMode.value,
+	);
 }
 </script>
 
@@ -46,6 +74,7 @@ function renderCanvas() {
 				width="600"
 				height="600"
 				class="border rounded-lg"
+				@click="handleCanvasClick"
 			/>
 			<div
 				v-if="labId === 1"
@@ -152,7 +181,7 @@ function renderCanvas() {
 				<input
 					id="scanline"
 					v-model="fillAlgorithm"
-					value="scanline"
+					:value="FillAlgorithm.SCANLINE"
 					type="radio"
 					class="tab"
 					aria-label="Scanline"
@@ -160,10 +189,47 @@ function renderCanvas() {
 				<input
 					id="edge"
 					v-model="fillAlgorithm"
-					value="edge"
+					:value="FillAlgorithm.EDGE"
 					type="radio"
 					class="tab"
 					aria-label="Edge table"
+				>
+			</div>
+			<div
+				v-if="labId === 4"
+				class="tabs tabs-border"
+			>
+				<input
+					:id="FloodFillAlgorithm.SIMPLE_4"
+					v-model="floodFillMode"
+					:value="FloodFillAlgorithm.SIMPLE_4"
+					type="radio"
+					class="tab"
+					aria-label="Простой 4x"
+				>
+				<input
+					:id="FloodFillAlgorithm.SIMPLE_8"
+					v-model="floodFillMode"
+					:value="FloodFillAlgorithm.SIMPLE_8"
+					type="radio"
+					class="tab"
+					aria-label="Простой 8x"
+				>
+				<input
+					:id="FloodFillAlgorithm.SCANLINE_4"
+					v-model="floodFillMode"
+					:value="FloodFillAlgorithm.SCANLINE_4"
+					type="radio"
+					class="tab"
+					aria-label="Построчный 4x"
+				>
+				<input
+					:id="FloodFillAlgorithm.SCANLINE_8"
+					v-model="floodFillMode"
+					:value="FloodFillAlgorithm.SCANLINE_8"
+					type="radio"
+					class="tab"
+					aria-label="Построчный 8x"
 				>
 			</div>
 			<button
